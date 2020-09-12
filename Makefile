@@ -10,3 +10,6 @@ test: up
 
 push: test
 	git push origin master
+
+port:
+	ssh -L localhost:8080:10.160.62.101:80 web3
