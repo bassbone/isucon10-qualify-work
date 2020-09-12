@@ -43,6 +43,30 @@ class App < Sinatra::Base
       )
     end
 
+    def db1
+      Thread.current[:db1] ||= Mysql2::Client.new(
+        host: '10.160.62.101',
+        port: db_info[:port],
+        username: db_info[:username],
+        password: db_info[:password],
+        database: db_info[:database],
+        reconnect: true,
+        symbolize_keys: true,
+      )
+    end
+
+    def db2
+      Thread.current[:db2] ||= Mysql2::Client.new(
+        host: '10.160.62.102',
+        port: db_info[:port],
+        username: db_info[:username],
+        password: db_info[:password],
+        database: db_info[:database],
+        reconnect: true,
+        symbolize_keys: true,
+      )
+    end
+
     def transaction(name)
       begin_transaction(name)
       yield(name)
@@ -104,11 +128,30 @@ class App < Sinatra::Base
     sql_dir = Pathname.new('../mysql/db')
     %w[0_Schema.sql 1_DummyEstateData.sql 2_DummyChairData.sql].each do |sql|
       sql_path = sql_dir.join(sql)
-      cmd = ['mysql', '-h', db_info[:host], '-u', db_info[:username], "-p#{db_info[:password]}", '-P', db_info[:port], db_info[:database]]
-      IO.popen(cmd, 'w') do |io|
-        io.puts File.read(sql_path)
-        io.close
+      t1 = Thread.new do
+        cmd = ['mysql', '-h', db_info[:host], '-u', db_info[:username], "-p#{db_info[:password]}", '-P', db_info[:port], db_info[:database]]
+        IO.popen(cmd, 'w') do |io|
+          io.puts File.read(sql_path)
+          io.close
+        end
       end
+      t2 = Thread.new do
+        cmd = ['mysql', '-h', '10.160.62.101', '-u', db_info[:username], "-p#{db_info[:password]}", '-P', db_info[:port], db_info[:database]]
+        IO.popen(cmd, 'w') do |io|
+          io.puts File.read(sql_path)
+          io.close
+        end
+      end
+      t3 = Thread.new do
+        cmd = ['mysql', '-h', '10.160.62.102', '-u', db_info[:username], "-p#{db_info[:password]}", '-P', db_info[:port], db_info[:database]]
+        IO.popen(cmd, 'w') do |io|
+          io.puts File.read(sql_path)
+          io.close
+        end
+      end
+      t1.join
+      t2.join
+      t3.join
     end
 
     { language: 'ruby' }.to_json
