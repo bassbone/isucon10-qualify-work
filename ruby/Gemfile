@@ -6,4 +6,13 @@ gem "sinatra"
 gem "sinatra-contrib"
 gem "mysql2"
 gem "mysql2-cs-bind"
-gem "unicorn"
+#gem "unicorn"
+
+gem 'puma'
+gem 'redis'
+gem 'redis-rack'
+gem 'newrelic_rpm'
+gem 'hiredis'
+gem 'stackprof'
+gem 'minitest'
+gem 'redlock'

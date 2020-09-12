@@ -1,0 +1,9 @@
+FROM ruby:2.7.1
+
+ENV WORKSPACE /ruby
+
+ADD Gemfile $WORKSPACE/
+WORKDIR $WORKSPACE
+RUN bundle install
+
+ADD . $WORKSPACE
