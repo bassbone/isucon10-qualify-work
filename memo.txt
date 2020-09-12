@@ -1,0 +1,7 @@
+ssh -L localhost:8080:10.160.62.101:80 web1
+
+CREATE USER 'isucon'@'%' IDENTIFIED BY 'isucon';
+GRANT ALL PRIVILEGES ON *.* TO 'isucon'@'%';
+
+curl -X POST localhost:8080/initialize
+
