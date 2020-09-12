@@ -398,10 +398,12 @@ EOS
     end
 
     if params[:features] && params[:features].size > 0
+      tmp1 = []
       params[:features].split(',').each do |feature_condition|
-        search_queries << "features LIKE CONCAT('%', ?, '%')"
-        query_params.push(feature_condition)
+        tmp1 << "'+#{feature_condition}'"
       end
+      tmp2 = tmp1.join(' ')
+      search_queries << "MATCH(features) AGAINST (#{tmp2} IN BOOLEAN MODE)"
     end
 
     if search_queries.size == 0
