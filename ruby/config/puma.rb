@@ -1,5 +1,5 @@
 bind 'tcp://0.0.0.0:1323'
-workers 2
+workers 8
 threads 16, 16
 preload_app!
 environment 'production'
