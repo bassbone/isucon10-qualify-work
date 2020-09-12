@@ -40,5 +40,7 @@ CREATE TABLE isuumo.chair
 ALTER TABLE isuumo.chair ADD INDEX price_and_id(price, id);
 ALTER TABLE isuumo.estate ADD INDEX rent_and_id(rent, id);
 ALTER TABLE isuumo.estate ADD INDEX door_height(door_height);
+ALTER TABLE isuumo.estate ADD INDEX door_width(door_width);
 ALTER TABLE isuumo.chair ADD INDEX popularity_and_id(popularity DESC, id);
 ALTER TABLE isuumo.estate ADD INDEX popularity_and_id(popularity DESC, id);
+ALTER TABLE isuumo.chair ADD INDEX kind(kind);
