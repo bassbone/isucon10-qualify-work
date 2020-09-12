@@ -107,9 +107,9 @@ max_allowed_packet = 32505856
 
 slow_query_log = 1
 slow_query_log_file = /var/log/mysql/mysql-slow.log
-long_query_time = 0.5
-innodb_buffer_pool_size=64M
-innodb_log_file_size=8M
+long_query_time = 0.1
+innodb_buffer_pool_size=128M
+innodb_log_file_size=16M
 innodb_flush_log_at_trx_commit = 2
 innodb_flush_method = O_DIRECT
 skip_innodb_doublewrite
