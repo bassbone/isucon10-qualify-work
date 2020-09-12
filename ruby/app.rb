@@ -115,7 +115,15 @@ class App < Sinatra::Base
   end
 
   get '/api/chair/low_priced' do
-    sql = "SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT #{LIMIT}" # XXX:
+    # インデックス追加
+    sql = <<"EOS"
+      SELECT *
+      FROM chair
+      WHERE stock > 0
+      ORDER BY price ASC
+      , id ASC
+      LIMIT #{LIMIT}
+EOS
     chairs = db.query(sql).to_a
     { chairs: chairs }.to_json
   end
@@ -277,6 +285,7 @@ class App < Sinatra::Base
     end
 
     transaction('post_api_chair') do
+      # バルクインサートに変更
       CSV.parse(params[:chairs][:tempfile].read, skip_blanks: true) do |row|
         sql = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         db.xquery(sql, *row.map(&:to_s))
@@ -301,6 +310,7 @@ class App < Sinatra::Base
       end
 
     transaction('post_api_chair_buy') do |tx_name|
+      # ロックの範囲に注意
       chair = db.xquery('SELECT * FROM chair WHERE id = ? AND stock > 0 FOR UPDATE', id).first
       unless chair
         rollback_transaction(tx_name) if in_transaction?(tx_name)
@@ -317,7 +327,14 @@ class App < Sinatra::Base
   end
 
   get '/api/estate/low_priced' do
-    sql = "SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT #{LIMIT}" # XXX:
+    # インデックス追加とインデックスヒント
+    sql = <<"EOS"
+      SELECT *
+      FROM estate FORCE INDEX(rent_and_id)
+      ORDER BY rent ASC
+      , id ASC
+      LIMIT #{LIMIT}
+EOS
     estates = db.xquery(sql).to_a
     { estates: estates.map { |e| camelize_keys_for_estate(e) } }.to_json
   end
@@ -445,7 +462,17 @@ class App < Sinatra::Base
       },
     }
 
-    sql = 'SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC'
+    # インデックスをどうするか問題
+    sql = <<"EOS"
+      SELECT *
+      FROM estate
+      WHERE latitude <= ?
+      AND latitude >= ?
+      AND longitude <= ?
+      AND longitude >= ?
+      ORDER BY popularity DESC
+      , id ASC
+EOS
     estates = db.xquery(sql, bounding_box[:bottom_right][:latitude], bounding_box[:top_left][:latitude], bounding_box[:bottom_right][:longitude], bounding_box[:top_left][:longitude])
 
     estates_in_polygon = []
@@ -453,6 +480,7 @@ class App < Sinatra::Base
       point = "'POINT(%f %f)'" % estate.values_at(:latitude, :longitude)
       coordinates_to_text = "'POLYGON((%s))'" % coordinates.map { |c| '%f %f' % c.values_at(:latitude, :longitude) }.join(',')
       sql = 'SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))' % [coordinates_to_text, point]
+      # N+1になっている
       e = db.xquery(sql, estate[:id]).first
       if e
         estates_in_polygon << e
@@ -491,6 +519,7 @@ class App < Sinatra::Base
     end
 
     transaction('post_api_estate') do
+      # バルクインサートさせた方が良い
       CSV.parse(params[:estates][:tempfile].read, skip_blanks: true) do |row|
         sql = 'INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         db.xquery(sql, *row.map(&:to_s))
@@ -546,7 +575,19 @@ class App < Sinatra::Base
     h = chair[:height]
     d = chair[:depth]
 
-    sql = "SELECT * FROM estate WHERE (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) OR (door_width >= ? AND door_height >= ?) ORDER BY popularity DESC, id ASC LIMIT #{LIMIT}" # XXX:
+    sql = <<"EOS"
+      SELECT *
+      FROM estate
+      WHERE 
+        (door_width >= ? AND door_height >= ?)
+        OR (door_width >= ? AND door_height >= ?) 
+        OR (door_width >= ? AND door_height >= ?)
+        OR (door_width >= ? AND door_height >= ?)
+        OR (door_width >= ? AND door_height >= ?)
+        OR (door_width >= ? AND door_height >= ?)
+      ORDER BY popularity DESC, id ASC
+      LIMIT #{LIMIT}
+EOS
     estates = db.xquery(sql, w, h, w, d, h, w, h, d, d, w, d, h).to_a
 
     { estates: estates.map { |e| camelize_keys_for_estate(e) } }.to_json
