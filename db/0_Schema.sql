@@ -17,7 +17,8 @@ CREATE TABLE isuumo.estate
     door_height INTEGER             NOT NULL,
     door_width  INTEGER             NOT NULL,
     features    VARCHAR(64)         NOT NULL,
-    popularity  INTEGER             NOT NULL
+    popularity  INTEGER             NOT NULL,
+    FULLTEXT(features) WITH PARSER ngram
 );
 
 CREATE TABLE isuumo.chair
@@ -34,7 +35,8 @@ CREATE TABLE isuumo.chair
     features    VARCHAR(64)     NOT NULL,
     kind        VARCHAR(64)     NOT NULL,
     popularity  INTEGER         NOT NULL,
-    stock       INTEGER         NOT NULL
+    stock       INTEGER         NOT NULL,
+    FULLTEXT(features) WITH PARSER ngram
 );
 
 ALTER TABLE isuumo.chair ADD INDEX price_and_id(price, id);

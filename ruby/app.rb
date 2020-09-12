@@ -216,7 +216,7 @@ EOS
 
     if params[:features] && params[:features].size > 0
       params[:features].split(',').each do |feature_condition|
-        search_queries << "features LIKE CONCAT('%', ?, '%')"
+        search_queries << "MATCH(features) AGAINST (?)"
         query_params.push(feature_condition)
       end
     end
@@ -399,7 +399,7 @@ EOS
 
     if params[:features] && params[:features].size > 0
       params[:features].split(',').each do |feature_condition|
-        search_queries << "features LIKE CONCAT('%', ?, '%')"
+        search_queries << "MATCH(features) AGAINST (?)"
         query_params.push(feature_condition)
       end
     end
