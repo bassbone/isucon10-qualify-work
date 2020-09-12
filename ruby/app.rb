@@ -82,18 +82,24 @@ class App < Sinatra::Base
     def begin_transaction(name)
       Thread.current[:db_transaction] ||= {}
       db.query('BEGIN')
+      db1.query('BEGIN')
+      db2.query('BEGIN')
       Thread.current[:db_transaction][name] = :open
     end
 
     def commit_transaction(name)
       Thread.current[:db_transaction] ||= {}
       db.query('COMMIT')
+      db1.query('COMMIT')
+      db2.query('COMMIT')
       Thread.current[:db_transaction][name] = :nil
     end
 
     def rollback_transaction(name)
       Thread.current[:db_transaction] ||= {}
       db.query('ROLLBACK')
+      db1.query('ROLLBACK')
+      db2.query('ROLLBACK')
       Thread.current[:db_transaction][name] = :nil
     end
 
@@ -292,8 +298,8 @@ EOS
     limit_offset = " ORDER BY popularity DESC, id ASC LIMIT #{per_page} OFFSET #{per_page * page}" # XXX: mysql-cs-bind doesn't support escaping variables for limit and offset
     count_prefix = 'SELECT COUNT(*) as count FROM chair WHERE '
 
-    count = db.xquery("#{count_prefix}#{search_condition}", query_params).first[:count]
-    chairs = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
+    count = db1.xquery("#{count_prefix}#{search_condition}", query_params).first[:count]
+    chairs = db1.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
 
     { count: count, chairs: chairs }.to_json
   end
@@ -332,6 +338,8 @@ EOS
       CSV.parse(params[:chairs][:tempfile].read, skip_blanks: true) do |row|
         sql = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         db.xquery(sql, *row.map(&:to_s))
+        db1.xquery(sql, *row.map(&:to_s))
+        db2.xquery(sql, *row.map(&:to_s))
       end
     end
 
@@ -360,6 +368,8 @@ EOS
         halt 404
       end
       db.xquery('UPDATE chair SET stock = stock - 1 WHERE id = ?', id)
+      db1.xquery('UPDATE chair SET stock = stock - 1 WHERE id = ?', id)
+      db2.xquery('UPDATE chair SET stock = stock - 1 WHERE id = ?', id)
     end
 
     status 200
@@ -473,8 +483,8 @@ EOS
     limit_offset = " ORDER BY popularity DESC, id ASC LIMIT #{per_page} OFFSET #{per_page * page}" # XXX:
     count_prefix = 'SELECT COUNT(*) as count FROM estate WHERE '
 
-    count = db.xquery("#{count_prefix}#{search_condition}", query_params).first[:count]
-    estates = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
+    count = db2.xquery("#{count_prefix}#{search_condition}", query_params).first[:count]
+    estates = db2.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
 
     { count: count, estates: estates.map { |e| camelize_keys_for_estate(e) } }.to_json
   end
@@ -566,6 +576,8 @@ EOS
       CSV.parse(params[:estates][:tempfile].read, skip_blanks: true) do |row|
         sql = 'INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         db.xquery(sql, *row.map(&:to_s))
+        db1.xquery(sql, *row.map(&:to_s))
+        db2.xquery(sql, *row.map(&:to_s))
       end
     end
 
