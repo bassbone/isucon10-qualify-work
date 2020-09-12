@@ -3,7 +3,7 @@ workers 8
 threads 16, 16
 preload_app!
 environment 'production'
-stdout_redirect '/tmp/puma.stdout', '/tmp/puma.stderr'
+#stdout_redirect '/tmp/puma.stdout', '/tmp/puma.stderr'
 
 #before_fork do
 #    require 'puma_worker_killer'
