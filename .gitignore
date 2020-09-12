@@ -1,3 +1,4 @@
+Gemfile.lock
 mysql_data/*
 mysql-files/*
 !.gitkeep
