@@ -13,3 +13,6 @@ push: test
 
 port:
 	ssh -L localhost:8080:10.160.62.101:80 web3
+
+mysqlcli:
+	docker-compose exec mysql mysql -uisucon -pisucon isuumo
