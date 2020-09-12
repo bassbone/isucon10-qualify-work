@@ -339,7 +339,6 @@ EOS
         sql = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         db.xquery(sql, *row.map(&:to_s))
         db1.xquery(sql, *row.map(&:to_s))
-        db2.xquery(sql, *row.map(&:to_s))
       end
     end
 
@@ -369,7 +368,6 @@ EOS
       end
       db.xquery('UPDATE chair SET stock = stock - 1 WHERE id = ?', id)
       db1.xquery('UPDATE chair SET stock = stock - 1 WHERE id = ?', id)
-      db2.xquery('UPDATE chair SET stock = stock - 1 WHERE id = ?', id)
     end
 
     status 200
@@ -576,7 +574,6 @@ EOS
       CSV.parse(params[:estates][:tempfile].read, skip_blanks: true) do |row|
         sql = 'INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         db.xquery(sql, *row.map(&:to_s))
-        db1.xquery(sql, *row.map(&:to_s))
         db2.xquery(sql, *row.map(&:to_s))
       end
     end
