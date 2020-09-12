@@ -116,7 +116,7 @@ skip_innodb_doublewrite
 skip-name-resolve
 max_connections = 500
 thread_cache_size = 300
-#disable-log-bin
+disable-log-bin
 #sort_buffer_size=1M
 #read_rnd_buffer_size=1M
 #sql_mode=TRADITIONAL,NO_AUTO_VALUE_ON_ZERO,ONLY_FULL_GROUP_BY
